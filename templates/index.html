@@ -40,32 +40,22 @@
             color: #00e5ff;
         }
 
-        .stream-container {
-            position: relative;
-            border: 1px solid #222;
-            background: #000;
+        button {
+            appearance: none;
+            border: 1px solid #00e5ff;
+            background: transparent;
+            color: #00e5ff;
+            padding: 0.9rem 1.8rem;
+            font: inherit;
+            cursor: pointer;
+            transition: background 0.2s ease, color 0.2s ease;
+            border-radius: 0.35rem;
         }
 
-        .stream-container::before {
-            content: '● LIVE';
-            position: absolute;
-            top: 0.75rem;
-            left: 0.75rem;
-            font-size: 0.7rem;
-            letter-spacing: 0.15em;
-            color: #ff3b3b;
-            z-index: 10;
-            animation: blink 1.5s step-start infinite;
-        }
-
-        @keyframes blink {
-            50% { opacity: 0; }
-        }
-
-        #stream {
-            display: block;
-            max-width: min(800px, 100%);
-            height: auto;
+        button:hover,
+        button:focus {
+            background: #00e5ff;
+            color: #0f0f0f;
         }
 
         footer {
@@ -80,10 +70,10 @@
         <h1>IMAGE <span>STATION</span></h1>
     </header>
 
-    <div class="stream-container">
-        <img id="stream" src="/stream" alt="Live camera feed">
-    </div>
+    <button id="live-button" type="button" onclick="window.location.href='/image-station'">
+        Image Station
+    </button>
 
-    <footer>MJPEG · CAMERA 0 · {{ request.host }}</footer>
+    <footer>Go to the live image station feed</footer>
 </body>
 </html>

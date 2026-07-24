@@ -9,52 +9,29 @@ Routes:
 """
 
 from flask import Flask, request, send_file, abort, Response, render_template
-from auth import require_http_api_key
-from SpinbotStationsDrivers import imagestation
+from SpinbotStationsDrivers import imagestation, sdc
 import io
 import cv2
 import threading
 
 app = Flask(__name__)
-station = imagestation()
-
-camera_lock = threading.Lock()
+image_station = imagestation()
+# sdc_station = sdc()
 
 @app.route("/image-station")
-@require_http_api_key
-def run():
-    match request.headers['instruction']:
-        case 'ping':
-            pass
-        case 'capture':
-            try:
-                with camera_lock:
-                    image_bytes = station.capture()
-            except RuntimeError as e:
-                abort(500, description=str(e))
-
-            return send_file(
-                io.BytesIO(image_bytes),
-                mimetype="image/jpeg",
-                as_attachment=False,
-                download_name="capture.jpg"
-            )
-        case 'pump':
-            amount = request.headers['amount']
-            pass
-        case _:  # problem with instruction
-            abort(400, description=f"Unknown instruction: {request.headers['instruction']!r}")
-
-    return "Done"
-
+def route_image_station():
+    if 'instruction' in request.headers:
+        # This means the request is coming from a python client
+        return image_station.process_instruction(request.headers['instruction'])
+    else:
+        # Request is coming from a regular browser, show image_station.html
+        return render_template('image_station.html')
 
 def generate_frames():
     try:
         while True:
-            with camera_lock:
-                if not station.check_camera():
-                    break
-                success, frame = station.cap.read()
+
+            success, frame = image_station.cap.read()
 
             if not success:
                 break
@@ -72,7 +49,6 @@ def generate_frames():
         # camera dropped out mid-stream; end the generator gracefully
         return
 
-
 @app.route('/stream')
 def stream():
     return Response(
@@ -80,11 +56,13 @@ def stream():
         mimetype='multipart/x-mixed-replace; boundary=frame'
     )
 
+@app.route('/image-station/live')
+def image_station_live():
+    return render_template('image_station_live.html')
 
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 if __name__ == "__main__":
     app.run(host="100.107.255.14", port=80, threaded=True)
