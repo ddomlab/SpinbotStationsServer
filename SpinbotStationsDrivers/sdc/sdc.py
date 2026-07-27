@@ -9,9 +9,10 @@ class sdc:
             pump_model='SY01C',
         )
 
-    def test(self):
+    def run(self, draw_port: int, dispense_port:int, speed:float, volume:float):
         self.pump.draw_and_dispense(
-            draw_valve_port=1,
-            dispense_valve_port=2,
-            volume=1,
+            draw_valve_port=draw_port,
+            dispense_valve_port=dispense_port,
+            speed=speed,
+            volume=volume
         )

@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Image Station</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Image Station + Pump</title>
     <style>
         * {
             margin: 0;
@@ -19,7 +19,6 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
             gap: 1.5rem;
             padding: 2rem;
         }
@@ -29,7 +28,7 @@
         }
 
         h1 {
-            font-size: 1.2rem;
+            font-size: 1.25rem;
             font-weight: normal;
             letter-spacing: 0.2em;
             text-transform: uppercase;
@@ -40,22 +39,131 @@
             color: #00e5ff;
         }
 
+        .section {
+            width: min(960px, 100%);
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .section-card {
+            background: #121212;
+            border: 1px solid #222;
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
+        }
+
+        .stream-container {
+            position: relative;
+            border: 1px solid #222;
+            background: #000;
+            border-radius: 0.75rem;
+            overflow: hidden;
+        }
+
+        .stream-container::before {
+            content: '● LIVE';
+            position: absolute;
+            top: 0.75rem;
+            left: 0.75rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.12em;
+            color: #ff3b3b;
+            z-index: 10;
+            animation: blink 1.5s step-start infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        #stream {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .button-row,
+        .submit-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+            width: 100%;
+        }
+
+        .form-grid {
+            display: grid;
+            gap: 1rem;
+            width: 100%;
+            max-width: 560px;
+        }
+
+        .field {
+            display: grid;
+            gap: 0.5rem;
+        }
+
+        .field-row {
+            justify-content: center;
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-end;
+        }
+
+        .field-row input {
+            flex: 1;
+        }
+
+        label {
+            font-size: 0.85rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #bbb;
+        }
+
+        input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border: 1px solid #444;
+            border-radius: 0.35rem;
+            background: #121212;
+            color: #fff;
+            font: inherit;
+            justify-content: center;
+        }
+
         button {
             appearance: none;
             border: 1px solid #00e5ff;
             background: transparent;
             color: #00e5ff;
-            padding: 0.9rem 1.8rem;
+            padding: 0.9rem 1.5rem;
             font: inherit;
             cursor: pointer;
-            transition: background 0.2s ease, color 0.2s ease;
             border-radius: 0.35rem;
+            transition: background 0.2s ease, color 0.2s ease;
+            justify-content: center;
         }
 
         button:hover,
         button:focus {
             background: #00e5ff;
             color: #0f0f0f;
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            font-size: 0.9rem;
+            color: #aaa;
+            min-height: 1.2rem;
         }
 
         footer {
@@ -67,13 +175,133 @@
 </head>
 <body>
     <header>
-        <h1>IMAGE <span>STATION</span></h1>
+        <h1>IMAGE <span>STATION</span> + PUMP</h1>
     </header>
 
-    <button id="live-button" type="button" onclick="window.location.href='/image-station'">
-        Image Station
-    </button>
+    <div class="section">
+        <div class="section-card">
+            <div class="stream-container">
+                <img id="stream" src="/stream" alt="Live camera feed" />
+            </div>
+            <div class="button-row">
+                <button type="button" onclick="customActionOne()">Action One</button>
+                <button type="button" onclick="customActionTwo()">Action Two</button>
+            </div>
+        </div>
 
-    <footer>Go to the live image station feed</footer>
+        <div class="section-card">
+            <div class="form-grid">
+                <div class="field">
+                    <label for="draw_port">Draw Port</label>
+                    <div class="field-row">
+                        <input id="draw_port" name="draw_port" type="number" placeholder="Enter draw port" />
+                        <button type="button" onclick="setParam('draw_port')">Set</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="dispense_port">Dispense Port</label>
+                    <div class="field-row">
+                        <input id="dispense_port" name="dispense_port" type="number" placeholder="Enter dispense port" />
+                        <button type="button" onclick="setParam('dispense_port')">Set</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="speed">Speed</label>
+                    <div class="field-row">
+                        <input id="speed" name="speed" type="number" step="any" placeholder="Enter speed" />
+                        <button type="button" onclick="setParam('speed')">Set</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="volume">Volume</label>
+                    <div class="field-row">
+                        <input id="volume" name="volume" type="number" step="any" placeholder="Enter volume" />
+                        <button type="button" onclick="setParam('volume')">Set</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="submit-row">
+                <button id="submit-button" type="button" onclick="submitPump()" disabled>Run Pump</button>
+            </div>
+
+            <div class="status" id="form-status">Fill every field and press each parameter button before submitting.</div>
+        </div>
+    </div>
+
+    <script>
+        const params = {
+            draw_port: null,
+            dispense_port: null,
+            speed: null,
+            volume: null,
+        };
+
+        function customActionOne() {
+            console.log('customActionOne triggered');
+            // TODO: implement action one behavior
+        }
+
+        function customActionTwo() {
+            console.log('customActionTwo triggered');
+            // TODO: implement action two behavior
+        }
+
+        function setParam(key) {
+            const input = document.getElementById(key);
+            const value = input.value.trim();
+
+            if (!value) {
+                updateStatus(`Please enter a value for ${key.replace('_', ' ')}.`);
+                return;
+            }
+
+            params[key] = value;
+            updateStatus(`${key.replace('_', ' ')} set to ${value}.`);
+            updateSubmitState();
+        }
+
+        function updateSubmitState() {
+            const ready = Object.values(params).every((value) => value !== null && value !== '');
+            document.getElementById('submit-button').disabled = !ready;
+        }
+
+        function submitPump() {
+            const ready = Object.values(params).every((value) => value !== null && value !== '');
+            if (!ready) {
+                updateStatus('Please set all four pump parameters before submitting.');
+                return;
+            }
+
+            fetch('/pump/run', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(params),
+            })
+                .then((response) => response.json())
+                .then((json) => {
+                    if (json.status === 'ok') {
+                        updateStatus(`Pump started with draw_port=${json.draw_port}, dispense_port=${json.dispense_port}, speed=${json.speed}, volume=${json.volume}.`);
+                    } else {
+                        updateStatus('Pump request completed but returned unexpected data.');
+                    }
+                })
+                .catch((error) => {
+                    console.error(error);
+                    updateStatus('Failed to run pump: ' + error.message);
+                });
+        }
+
+        function updateStatus(message) {
+            document.getElementById('form-status').textContent = message;
+        }
+    </script>
+
+    <footer>Live feed and pump control all on one page</footer>
 </body>
 </html>
