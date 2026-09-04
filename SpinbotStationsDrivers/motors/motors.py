@@ -25,9 +25,9 @@ class MultiMotorController:
         self.switch_delay = switch_delay
 
         self.enables = [DigitalOutputDevice(pin) for pin in enable_pins]
-        self.motors_count = len(self.enables)
+        self.num_motors = len(self.enables)
 
-        self.positions = [0] * self.motors_count
+        self.positions = [0] * self.num_motors
         self._active_motor = None
         return
 
@@ -53,9 +53,9 @@ class MultiMotorController:
         """
 
         # check to see if index is possible
-        if not (0 <= motor_index < self.motors_count):
+        if not (0 <= motor_index < self.num_motors):
             raise ValueError(f"Tried to access a motor using an index that does not exsist."
-                             f"\nIndex motor {motor_index}. Value should be between 0 and {motor_count}")
+                             f"\nIndex motor {motor_index}. Value should be between 0 and {self.num_motors}")
         if motor_index == self._active_motor:
             return
         
