@@ -1,9 +1,6 @@
-import cv2
-import os
-import io
-from flask import abort, send_file
+import cv2, os
 
-class imagestation:
+class usbcamera:
     def __init__(self, camera_index=0, capture_dir=None):
         width = 1280
         height = 800
@@ -19,15 +16,11 @@ class imagestation:
 
         if (actual_w, actual_h) != (width, height):
             raise RuntimeError(
-                f"Image station camera did not accept requested resolution: "
+                f"Camera did not accept requested resolution: "
                 f"requested {width}x{height}, got {int(actual_w)}x{int(actual_h)}"
             )
         
         self.check_camera()
-
-        self.capture_dir = capture_dir if capture_dir else os.path.join(os.getcwd(), "captures")
-        if not os.path.exists(self.capture_dir):
-            os.makedirs(self.capture_dir)
 
     def check_camera(self) -> bool:
         if not self.cap.isOpened():
@@ -36,26 +29,6 @@ class imagestation:
         if not ret:
             raise RuntimeError("Can't receive frame")
         return True
-
-    def capture(self):
-        """Grabs a single frame from the camera and returns it as
-        JPEG-encoded bytes
-        """
-        self.check_camera()
-        status, frame = self.cap.read()
-        if not status:
-            raise RuntimeError("Failed to read frame from camera")
-        
-        success, buffer = cv2.imencode('.jpg', frame)
-        if not success:
-            raise RuntimeError("Failed to encode from as JPEG")
-        
-        return send_file(
-            io.BytesIO(buffer.tobytes()),
-            mimetype="image/jpeg",
-            as_attachment=False,
-            download_name="capture.jpg"
-        )
 
     def generate_frames(self):
         cam = cv2.VideoCapture(0)
@@ -75,14 +48,3 @@ class imagestation:
                 + frame_bytes +
                 b'\r\n'
             )
-
-    def process_instruction(self, ins):
-        # parse through instruction to see what needs to be run
-        match ins:
-            case 'ping':
-                return "pong"
-            case 'capture':
-                return self.capture()
-            case _:  # problem with instruction
-                abort(400, description=f"Unknown instruction: {ins}\n")
-    
