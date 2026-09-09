@@ -4,8 +4,15 @@ from gpiozero import DigitalOutputDevice
 ENABLED = 0
 DISABLED = 1
 
-class MultiMotorController:
-    def __init__(self, step_pin, direction_pin, enable_pins, step_delay=0.001, switch_delay=0.01):
+class MultiStepperController:
+    def __init__(
+            self, 
+            step_pin, 
+            direction_pin, 
+            enable_pins, 
+            step_delay=0.001, 
+            switch_delay=0.01
+            ):
         """This class will be used to drive a number of motors using a motor driver board in conjunction with a custom pihat
 
         Args:
@@ -29,11 +36,13 @@ class MultiMotorController:
 
         self.positions = [0] * self.num_motors
         self._active_motor = None
+
+        self.disable_all()
         return
 
     # --------------------------INTERNAL--------------------------
 
-
+    
 
     # ---------------------------PUBLIC---------------------------
     
@@ -42,6 +51,7 @@ class MultiMotorController:
         """
         for en in self.enables:
             en.value = DISABLED
+            print(f"Motor {en} set to {en.value}")
         self._active_motor = None
         return
 
@@ -65,4 +75,23 @@ class MultiMotorController:
         if self.switch_delay:
             sleep(self.switch_delay)
         return
+
+    def step_motor(self, motor_index:int, steps:int, clockwise:bool = True):
+        self.select(motor_index)
+        self.dir_pin_dev.value = clockwise
+        direction = 1 if clockwise else -1
+
+        for _ in range(steps):
+            self.step_pin_dev.on()
+            sleep(self.step_delay)
+            self.step_pin_dev.off()
+            sleep(self.step_delay)
+            self.positions[motor_index] += direction
+
+    def test_motors(self, motors) -> bool:
+        for motor in motors:
+            print(f"Testing")
+            self.step_motor(motor, 200, True)
+            self.step_motor(motor, 200, False)
+        return True
     
