@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Image Station + Pump</title>
+    <title>Station Control Center</title>
     <style>
         * {
             margin: 0;
@@ -11,46 +11,174 @@
             box-sizing: border-box;
         }
 
+        :root {
+            --ink: #111;
+            --muted: #777;
+            --line: #d4d4d0;
+            --surface: #fff;
+            --canvas: #f5f5f3;
+            --blue: #1c6e8c;
+            --amber: #b56620;
+        }
+
         body {
-            background: #0f0f0f;
-            color: #e0e0e0;
-            font-family: 'Courier New', monospace;
+            background: var(--canvas);
+            color: var(--ink);
+            font-family: Georgia, 'Times New Roman', serif;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1.5rem;
-            padding: 2rem;
+            gap: 1.25rem;
+            padding: 2rem 1rem 1rem;
         }
 
         header {
-            text-align: center;
+            width: min(960px, 100%);
+            border-bottom: 1px solid #111;
+            padding-bottom: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: end;
+            gap: 1rem;
+        }
+
+        header::after {
+            content: 'ONLINE / LOCAL';
+            color: var(--blue);
+            font: 0.65rem 'Courier New', monospace;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
         }
 
         h1 {
-            font-size: 1.25rem;
-            font-weight: normal;
-            letter-spacing: 0.2em;
-            text-transform: uppercase;
-            color: #888;
+            font-size: clamp(1.5rem, 4vw, 2.25rem);
+            font-weight: 400;
+            letter-spacing: 0.01em;
         }
 
         h1 span {
-            color: #00e5ff;
+            font-style: italic;
         }
 
         .section {
             width: min(960px, 100%);
             display: grid;
-            gap: 1.5rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
         }
 
         .section-card {
-            background: #121212;
-            border: 1px solid #222;
-            border-radius: 0.75rem;
-            padding: 1.5rem;
-            box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.02);
+            position: relative;
+            background: var(--surface);
+            border: 1px solid var(--line);
+            padding: clamp(1rem, 3vw, 1.5rem);
+        }
+
+        .camera-card {
+            grid-column: 1 / -1;
+            grid-row: 1;
+            border-top: 3px solid var(--blue);
+        }
+
+        .motor-card {
+            grid-column: 1;
+            grid-row: 2;
+            border-top: 3px solid var(--ink);
+        }
+
+        .pump-card {
+            grid-column: 2;
+            grid-row: 2;
+            border-top: 3px solid var(--amber);
+        }
+
+        .function-card {
+            grid-column: 1 / -1;
+            grid-row: 3;
+            border-top: 3px solid var(--blue);
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .section-heading::before {
+            content: '';
+            position: absolute;
+            top: 1rem;
+            right: 1.5rem;
+            width: 0.45rem;
+            height: 0.45rem;
+            border-radius: 50%;
+            background: var(--blue);
+        }
+
+        .pump-card .section-heading::before {
+            background: var(--amber);
+        }
+
+        h2 {
+            font-size: 1rem;
+            font-weight: 400;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .eyebrow {
+            color: #777;
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .motor-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.5rem;
+        }
+
+        .motor-button {
+            width: 100%;
+            min-height: 3.5rem;
+            padding: 0.5rem;
+            font-size: 1.4rem;
+        }
+
+        .motor-button span {
+            display: block;
+            font-family: 'Courier New', monospace;
+            font-size: 0.65rem;
+            margin-top: 0.2rem;
+        }
+
+        .motor-selector {
+            display: grid;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .motor-selector label {
+            color: var(--muted);
+            font-family: 'Courier New', monospace;
+            font-size: 0.7rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .motor-selector select {
+            width: 100%;
+            padding: 0.75rem 0.85rem;
+            border: 1px solid var(--blue);
+            border-radius: 0;
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
         }
 
         .stream-container {
@@ -58,7 +186,22 @@
             border: 1px solid #222;
             background: #000;
             border-radius: 0.75rem;
+            aspect-ratio: 4 / 3;
             overflow: hidden;
+        }
+
+        .camera-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .camera-title {
+            padding: 0.5rem 0.75rem 0;
+            color: var(--muted);
+            font-size: 0.75rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
         }
 
         .stream-container::before {
@@ -79,11 +222,48 @@
             }
         }
 
-        #stream {
+        .stream {
             display: block;
             width: 100%;
-            max-width: 100%;
-            height: auto;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .fullscreen-button {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            z-index: 11;
+            width: 2.25rem;
+            height: 2.25rem;
+            padding: 0;
+            border-color: #fff;
+            background: rgba(0, 0, 0, 0.65);
+            color: #fff;
+            font-family: Arial, sans-serif;
+            font-size: 1.25rem;
+            line-height: 1;
+        }
+
+        .fullscreen-button:hover,
+        .fullscreen-button:focus {
+            background: #fff;
+            color: #111;
+        }
+
+        .stream-container:fullscreen,
+        .stream-container:-webkit-full-screen {
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            aspect-ratio: auto;
+            border: 0;
+            border-radius: 0;
+        }
+
+        .stream-container:fullscreen .stream,
+        .stream-container:-webkit-full-screen .stream {
+            object-fit: contain;
         }
 
         .button-row,
@@ -97,9 +277,9 @@
 
         .form-grid {
             display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 1rem;
             width: 100%;
-            max-width: 560px;
         }
 
         .field {
@@ -118,41 +298,64 @@
             flex: 1;
         }
 
+        .field-row select {
+            flex: 1;
+            min-width: 0;
+            padding: 0.85rem 1rem;
+            border: 1px solid #aaa;
+            border-radius: 0;
+            background: #fff;
+            color: var(--ink);
+            font: inherit;
+        }
+
         label {
             font-size: 0.85rem;
             letter-spacing: 0.08em;
             text-transform: uppercase;
-            color: #bbb;
+            color: var(--muted);
         }
 
         input {
             width: 100%;
             padding: 0.85rem 1rem;
-            border: 1px solid #444;
-            border-radius: 0.35rem;
-            background: #121212;
-            color: #fff;
+            border: 1px solid #aaa;
+            border-radius: 0;
+            background: #fff;
+            color: #111;
             font: inherit;
             justify-content: center;
         }
 
         button {
             appearance: none;
-            border: 1px solid #00e5ff;
+            border: 1px solid #111;
             background: transparent;
-            color: #00e5ff;
+            color: #111;
             padding: 0.9rem 1.5rem;
             font: inherit;
             cursor: pointer;
-            border-radius: 0.35rem;
+            border-radius: 0;
             transition: background 0.2s ease, color 0.2s ease;
             justify-content: center;
         }
 
         button:hover,
         button:focus {
-            background: #00e5ff;
-            color: #0f0f0f;
+            background: #111;
+            color: #fff;
+        }
+
+        .motor-button:hover,
+        .motor-button:focus {
+            background: var(--blue);
+            border-color: var(--blue);
+        }
+
+        .pump-card button:hover,
+        .pump-card button:focus {
+            background: var(--amber);
+            border-color: var(--amber);
         }
 
         button:disabled {
@@ -162,34 +365,118 @@
 
         .status {
             font-size: 0.9rem;
-            color: #aaa;
+            color: #555;
             min-height: 1.2rem;
         }
 
         footer {
             font-size: 0.75rem;
-            color: #444;
+            color: #777;
             letter-spacing: 0.1em;
+        }
+
+        @media (max-width: 640px) {
+            header {
+                align-items: start;
+                flex-direction: column;
+            }
+
+            .section {
+                grid-template-columns: 1fr;
+            }
+
+            .camera-card,
+            .motor-card,
+            .pump-card,
+            .function-card {
+                grid-column: 1;
+                grid-row: auto;
+            }
+
+            .motor-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <header>
-        <h1>IMAGE <span>STATION</span> + PUMP</h1>
+        <h1>Station Control Center</h1>
     </header>
 
     <div class="section">
-        <div class="section-card">
-            <div class="stream-container">
-                <img id="stream" src="/stream" alt="Live camera feed" />
+        <div class="section-card motor-card">
+            <div class="section-heading">
+                <h2>Motor Position</h2>
+                <div class="eyebrow">Incremental movement</div>
             </div>
-            <div class="button-row">
-                <button type="button" onclick="customActionOne()">Action One</button>
-                <button type="button" onclick="customActionTwo()">Action Two</button>
+            <div class="motor-selector">
+                <label for="motor-select">Active motor</label>
+                <select id="motor-select" name="motor">
+                    <option value="0">Motor 1</option>
+                    <option value="1">Motor 2</option>
+                    <option value="2">Motor 3</option>
+                </select>
+            </div>
+            <div class="motor-grid">
+                <button class="motor-button" type="button" onclick="moveMotor(-1)">−<span>1 step</span></button>
+                <button class="motor-button" type="button" onclick="moveMotor(-10)">−<span>10 steps</span></button>
+                <button class="motor-button" type="button" onclick="moveMotor(-100)">−<span>100 steps</span></button>
+                <button class="motor-button" type="button" onclick="moveMotor(-250)">−<span>250 steps</span></button>
+                <button class="motor-button" type="button" onclick="moveMotor(-500)">−<span>500 steps</span></button>
+            </div>
+            <div class="motor-grid" aria-label="Move motor forward" style="margin-top: 0.5rem;">
+                <button class="motor-button" type="button" onclick="moveMotor(1)">+<span>1 step</span></button>
+                <button class="motor-button" type="button" onclick="moveMotor(10)">+<span>10 steps</span></button>
+                <button class="motor-button" type="button" onclick="moveMotor(100)">+<span>100 steps</span></button>
+                <button class="motor-button" type="button" onclick="moveMotor(250)">+<span>250 steps</span></button>
+                <button class="motor-button" type="button" onclick="moveMotor(500)">+<span>500 steps</span></button>
+            </div>
+            <div class="status" id="motor-status" role="status">Ready for movement.</div>
+        </div>
+
+        <div class="section-card camera-card">
+            <div class="camera-grid">
+                <div>
+                    <div class="camera-title">Setup Overview</div>
+                    <div class="stream-container">
+                        <img class="stream" src="/stream" alt="Live image station interior camera feed" />
+                        <button class="fullscreen-button" type="button" onclick="toggleFullscreen(this.parentElement)" aria-label="View interior camera fullscreen" title="View fullscreen">⛶</button>
+                    </div>
+                </div>
+                <div>
+                    <div class="camera-title">Image Station Interior</div>
+                    <div class="stream-container">
+                        <img class="stream" src="/stream/setup" alt="Live setup overview camera feed" />
+                        <button class="fullscreen-button" type="button" onclick="toggleFullscreen(this.parentElement)" aria-label="View setup camera fullscreen" title="View fullscreen">⛶</button>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <div class="section-card">
+        <div class="section-card function-card">
+            <div class="section-heading">
+                <h2>Station Functions</h2>
+                <div class="eyebrow">Select a configured function</div>
+            </div>
+            <div class="field-row">
+                <select id="function-select" name="function" aria-label="Select station function" onchange="updateFunctionButton()">
+                    <option value="" selected disabled>No functions configured</option>
+                </select>
+                <button id="function-button" type="button" onclick="runSelectedFunction()" disabled>Run function</button>
+            </div>
+            <div class="status" id="function-status" role="status">Add functions to the selector when they are ready.</div>
+        </div>
+
+        <div class="section-card pump-card">
+            <div class="section-heading">
+                <h2>Pump Controller</h2>
+                <div class="eyebrow">Dose setup</div>
+            </div>
             <div class="form-grid">
                 <div class="field">
                     <label for="draw_port">Draw Port</label>
@@ -233,6 +520,43 @@
     </div>
 
     <script>
+        function toggleFullscreen(element) {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+                return;
+            }
+
+            if (element.requestFullscreen) {
+                element.requestFullscreen().catch(() => {
+                    updateStatus('Fullscreen is not available in this browser.');
+                });
+            } else if (element.webkitRequestFullscreen) {
+                element.webkitRequestFullscreen();
+            } else {
+                updateStatus('Fullscreen is not available in this browser.');
+            }
+        }
+
+        function moveMotor(steps) {
+            const status = document.getElementById('motor-status');
+            const motor = Number(document.getElementById('motor-select').value);
+            const motorLabel = motor + 1;
+            status.textContent = `Moving motor ${motorLabel}: ${steps > 0 ? '+' : ''}${steps} steps...`;
+
+            fetch('/motor/move', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ motor, steps }),
+            })
+                .then((response) => response.json().then((json) => ({ ok: response.ok, json })))
+                .then(({ ok, json }) => {
+                    status.textContent = ok ? `Motor ${json.motor} moved ${json.steps > 0 ? '+' : ''}${json.steps} steps.` : (json.message || 'Motor request failed.');
+                })
+                .catch((error) => {
+                    status.textContent = 'Motor request failed: ' + error.message;
+                });
+        }
+
         const params = {
             draw_port: null,
             dispense_port: null,
@@ -240,14 +564,17 @@
             volume: null,
         };
 
-        function customActionOne() {
-            console.log('customActionOne triggered');
-            // TODO: implement action one behavior
+        function updateFunctionButton() {
+            document.getElementById('function-button').disabled = !document.getElementById('function-select').value;
         }
 
-        function customActionTwo() {
-            console.log('customActionTwo triggered');
-            // TODO: implement action two behavior
+        function runSelectedFunction() {
+            const selectedFunction = document.getElementById('function-select').value;
+            if (!selectedFunction) {
+                return;
+            }
+
+            document.getElementById('function-status').textContent = `Function "${selectedFunction}" is not configured yet.`;
         }
 
         function setParam(key) {

@@ -4,9 +4,7 @@ import io
 from flask import abort, send_file
 
 class imagestation:
-    def __init__(self, camera_index=0, capture_dir=None):
-        width = 1280
-        height = 800
+    def __init__(self, camera_index=0, width=1280, height=800, capture_dir=None):
 
         self.cap = cv2.VideoCapture(camera_index, cv2.CAP_V4L2)
 
@@ -14,15 +12,6 @@ class imagestation:
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-        actual_w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        actual_h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-
-        if (actual_w, actual_h) != (width, height):
-            raise RuntimeError(
-                f"Image station camera did not accept requested resolution: "
-                f"requested {width}x{height}, got {int(actual_w)}x{int(actual_h)}"
-            )
-        
         self.check_camera()
 
         self.capture_dir = capture_dir if capture_dir else os.path.join(os.getcwd(), "captures")
@@ -58,15 +47,13 @@ class imagestation:
         )
 
     def generate_frames(self):
-        cam = cv2.VideoCapture(0)
-        if not self.check_camera():
-            return
-        
         while True:
-            success, frame = cam.read()
+            success, frame = self.cap.read()
             if not success:
                 break
-            _, buffer = cv2.imencode('.jpg', frame)
+            success, buffer = cv2.imencode('.jpg', frame)
+            if not success:
+                continue
             frame_bytes = buffer.tobytes()
 
             yield (

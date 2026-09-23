@@ -88,10 +88,26 @@ class MultiStepperController:
             sleep(self.step_delay)
             self.positions[motor_index] += direction
 
+    def step_clockwise(self, motor_index:int, steps:int):
+        self.step_motor(motor_index, steps, True)
+        return
+
+    def step_out(self, motor_index:int, steps:int):
+        self.step_motor(motor_index, steps, True)
+        return
+
+    def step_counterclockwise(self, motor_index:int, steps:int):
+        self.step_motor(motor_index, steps, False)
+        return
+
+    def step_in(self, motor_index:int, steps:int):
+        self.step_motor(motor_index, steps, False)
+        return
+
     def test_motors(self) -> bool:
         for motor in range(0, self.num_motors):
             print(f"Testing motor #{motor}")
-            self.step_motor(motor, 200, True)
-            self.step_motor(motor, 200, False)
+            self.step_clockwise(motor, 200)
+            self.step_counterclockwise(motor, 200)
         return True
     

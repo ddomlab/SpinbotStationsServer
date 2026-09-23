@@ -1,25 +1,13 @@
-import cv2, os
+import cv2
 
 class usbcamera:
-    def __init__(self, camera_index=0, capture_dir=None):
-        width = 1280
-        height = 800
-
+    def __init__(self, camera_index=0, width=1920, height=1080):
         self.cap = cv2.VideoCapture(camera_index, cv2.CAP_V4L2)
 
         self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
         self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
 
-        actual_w = self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)
-        actual_h = self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
-
-        if (actual_w, actual_h) != (width, height):
-            raise RuntimeError(
-                f"Camera did not accept requested resolution: "
-                f"requested {width}x{height}, got {int(actual_w)}x{int(actual_h)}"
-            )
-        
         self.check_camera()
 
     def check_camera(self) -> bool:
@@ -31,15 +19,13 @@ class usbcamera:
         return True
 
     def generate_frames(self):
-        cam = cv2.VideoCapture(0)
-        if not self.check_camera():
-            return
-        
         while True:
-            success, frame = cam.read()
+            success, frame = self.cap.read()
             if not success:
                 break
-            _, buffer = cv2.imencode('.jpg', frame)
+            success, buffer = cv2.imencode('.jpg', frame)
+            if not success:
+                continue
             frame_bytes = buffer.tobytes()
 
             yield (
