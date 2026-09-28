@@ -201,7 +201,6 @@
             color: var(--muted);
             font-size: 0.75rem;
             letter-spacing: 0.08em;
-            text-transform: uppercase;
         }
 
         .stream-container::before {
@@ -340,6 +339,24 @@
             justify-content: center;
         }
 
+        .capture-button {
+            display: inline-block;
+            border: 1px solid var(--blue);
+            background: transparent;
+            color: var(--blue);
+            margin: 0.75rem 0 0.25rem;
+            padding: 0.9rem 1.5rem;
+            font: inherit;
+            text-decoration: none;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .capture-button:hover,
+        .capture-button:focus {
+            background: var(--blue);
+            color: #fff;
+        }
+
         button:hover,
         button:focus {
             background: #111;
@@ -442,19 +459,22 @@
         <div class="section-card camera-card">
             <div class="camera-grid">
                 <div>
-                    <div class="camera-title">Setup Overview</div>
+                    <div class="camera-title">Overview</div>
                     <div class="stream-container">
-                        <img class="stream" src="/stream" alt="Live image station interior camera feed" />
+                        <img class="stream" src="/stream" alt="Live setup overview camera feed" />
                         <button class="fullscreen-button" type="button" onclick="toggleFullscreen(this.parentElement)" aria-label="View interior camera fullscreen" title="View fullscreen">⛶</button>
                     </div>
                 </div>
                 <div>
-                    <div class="camera-title">Image Station Interior</div>
+                    <div class="camera-title">IS Interior</div>
                     <div class="stream-container">
-                        <img class="stream" src="/stream/setup" alt="Live setup overview camera feed" />
+                        <img class="stream" src="/stream/setup" alt="Live image station interior camera feed" />
                         <button class="fullscreen-button" type="button" onclick="toggleFullscreen(this.parentElement)" aria-label="View setup camera fullscreen" title="View fullscreen">⛶</button>
                     </div>
                 </div>
+            </div>
+            <div class="button-row">
+                <a class="capture-button" href="/capture" download="capture.png">Capture PNG</a>
             </div>
         </div>
 
@@ -568,13 +588,55 @@
             document.getElementById('function-button').disabled = !document.getElementById('function-select').value;
         }
 
+        function loadFunctions() {
+            const select = document.getElementById('function-select');
+            const status = document.getElementById('function-status');
+
+            fetch('/station/functions')
+                .then((response) => response.json())
+                .then((json) => {
+                    select.replaceChildren();
+                    if (!json.functions.length) {
+                        select.add(new Option('No functions configured', ''));
+                        status.textContent = 'Add functions to station_functions.py when they are ready.';
+                        return;
+                    }
+
+                    select.add(new Option('Select a function', ''));
+                    json.functions.forEach((stationFunction) => {
+                        select.add(new Option(stationFunction.label, stationFunction.name));
+                    });
+                    status.textContent = `${json.functions.length} function${json.functions.length === 1 ? '' : 's'} available.`;
+                })
+                .catch((error) => {
+                    status.textContent = 'Unable to load functions: ' + error.message;
+                });
+        }
+
         function runSelectedFunction() {
             const selectedFunction = document.getElementById('function-select').value;
+            const status = document.getElementById('function-status');
             if (!selectedFunction) {
                 return;
             }
 
-            document.getElementById('function-status').textContent = `Function "${selectedFunction}" is not configured yet.`;
+            status.textContent = 'Running function...';
+            document.getElementById('function-button').disabled = true;
+
+            fetch('/station/function/run', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name: selectedFunction }),
+            })
+                .then((response) => response.json().then((json) => ({ ok: response.ok, json })))
+                .then(({ ok, json }) => {
+                    status.textContent = ok ? json.message : (json.message || 'Function failed.');
+                    updateFunctionButton();
+                })
+                .catch((error) => {
+                    status.textContent = 'Function failed: ' + error.message;
+                    updateFunctionButton();
+                });
         }
 
         function setParam(key) {
@@ -627,6 +689,8 @@
         function updateStatus(message) {
             document.getElementById('form-status').textContent = message;
         }
+
+        loadFunctions();
     </script>
 
     <footer>Live feed and pump control all on one page</footer>

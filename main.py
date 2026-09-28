@@ -13,13 +13,14 @@ Routes:
 from flask import Flask, request, send_file, abort, Response, render_template
 from SpinbotStationsDrivers import imagestation, sdc, usbcamera
 import stepper
+import station_functions
 import io
 import cv2
 import threading
 
 app = Flask(__name__)
 image_station = imagestation()
-setup_camera = usbcamera(camera_index=2, width=1600, height=1200)
+setup_camera = imagestation(camera_index=2, width=1600, height=1200)
 stepper_lock = threading.Lock()
 MOTOR_INCREMENTS = {1, 10, 100, 250, 500}
 MOTOR_COUNT = stepper.steppers.num_motors
@@ -48,6 +49,10 @@ def setup_stream():
         mimetype='multipart/x-mixed-replace; boundary=frame'
     )
 
+@app.route('/capture')
+def capture_image():
+    return setup_camera.capture()
+
 @app.route('/pump')
 def pump_page():
     return render_template('pump.html')
@@ -74,6 +79,39 @@ def pump_run():
         'dispense_port': dispense_port,
         'speed': speed,
         'volume': volume,
+    }
+
+@app.route('/station/functions')
+def station_function_list():
+    return {
+        'functions': [
+            {'name': name, 'label': definition['label']}
+            for name, definition in station_functions.FUNCTIONS.items()
+        ],
+    }
+
+@app.route('/station/function/run', methods=['POST'])
+def station_function_run():
+    data = request.get_json(silent=True) or {}
+    function_name = data.get('name')
+    if not isinstance(function_name, str):
+        abort(404, description='Station function not found')
+
+    definition = station_functions.FUNCTIONS.get(function_name)
+    if definition is None:
+        abort(404, description='Station function not found')
+
+    try:
+        with stepper_lock:
+            result = definition['handler']()
+    except Exception as error:
+        app.logger.exception('Station function failed: %s', function_name)
+        abort(500, description=f'Station function failed: {error}')
+
+    return {
+        'status': 'ok',
+        'name': function_name,
+        'message': result or f'{definition["label"]} completed.',
     }
 
 @app.route('/action/one', methods=['POST'])

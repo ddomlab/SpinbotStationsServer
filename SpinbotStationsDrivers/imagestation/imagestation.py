@@ -28,22 +28,22 @@ class imagestation:
 
     def capture(self):
         """Grabs a single frame from the camera and returns it as
-        JPEG-encoded bytes
+        a PNG download response
         """
         self.check_camera()
         status, frame = self.cap.read()
         if not status:
             raise RuntimeError("Failed to read frame from camera")
         
-        success, buffer = cv2.imencode('.jpg', frame)
+        success, buffer = cv2.imencode('.png', frame)
         if not success:
-            raise RuntimeError("Failed to encode from as JPEG")
+            raise RuntimeError("Failed to encode frame as PNG")
         
         return send_file(
             io.BytesIO(buffer.tobytes()),
-            mimetype="image/jpeg",
-            as_attachment=False,
-            download_name="capture.jpg"
+            mimetype="image/png",
+            as_attachment=True,
+            download_name="capture.png"
         )
 
     def generate_frames(self):
