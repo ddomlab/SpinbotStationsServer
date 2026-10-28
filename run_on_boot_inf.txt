@@ -1,0 +1,11 @@
+# Enable start on boot
+sudo systemctl enable --now myscript.service
+
+# Disable current process
+sudo systemctl stop myscript.service
+
+# Prevent from starting on boot
+sudo systemctl disable myscript.service
+
+# To see live output
+journalctl -u myscript.service -f

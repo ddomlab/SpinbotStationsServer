@@ -2,6 +2,7 @@ import cv2
 import os
 import io
 from flask import abort, send_file
+from time import sleep
 
 class imagestation:
     def __init__(self, camera_index=0, width=1280, height=800, capture_dir=None):
@@ -38,6 +39,8 @@ class imagestation:
         success, buffer = cv2.imencode('.png', frame)
         if not success:
             raise RuntimeError("Failed to encode frame as PNG")
+
+        sleep (10)
         
         return send_file(
             io.BytesIO(buffer.tobytes()),
@@ -67,8 +70,10 @@ class imagestation:
         # parse through instruction to see what needs to be run
         match ins:
             case 'ping':
+                print("Returning pong")
                 return "pong"
             case 'capture':
+
                 return self.capture()
             case _:  # problem with instruction
                 abort(400, description=f"Unknown instruction: {ins}\n")

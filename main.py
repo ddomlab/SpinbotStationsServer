@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Simple flask server
 
@@ -11,14 +12,13 @@ Routes:
 """
 
 from flask import Flask, request, send_file, abort, Response, render_template
-from SpinbotStationsDrivers import imagestation, sdc, usbcamera
+from SpinbotStationsDrivers import imagestation
 import stepper
 import station_functions
-import io
-import cv2
 import threading
 
 app = Flask(__name__)
+ip_type = "else"      # can be PUBLIC or TAILSCALE
 image_station = imagestation()
 setup_camera = imagestation(camera_index=2, width=1600, height=1200)
 stepper_lock = threading.Lock()
@@ -145,7 +145,7 @@ def image_station_live():
     return render_template('image_station_live.html')
 
 def process_instructions(header):
-    match header['machine']:
+    match header['Station']:
         case 'image-station':
             image_station.process_instruction(header['instruction'])
         case 'sdc':
@@ -155,6 +155,7 @@ def process_instructions(header):
 
 @app.route('/')
 def index():
+    print(request.headers)
     if 'station' in request.headers:
         process_instructions(request.headers)
     else:
@@ -162,4 +163,9 @@ def index():
     return "Something went wrong!"
 
 if __name__ == "__main__":
-    app.run(host="100.107.255.14", port=80, threaded=True)
+    if ip_type=="PUBLIC":
+        host = "0.0.0.0"
+        print("----------WARNING----------\nRUNNING ON PUBLIC IP")
+    else:
+        host="100.107.255.14"
+    app.run(host=host, port=80, threaded=True)
